@@ -12,6 +12,92 @@ document.addEventListener("DOMContentLoaded", function () {
   const pageContent = document.querySelectorAll(".page-content");
   const cards = document.querySelectorAll('.highlight-card');
   const body = document.body;
+    const heroSection = document.getElementById("home");
+    const slides = document.querySelectorAll(".hero-slide");
+    const playPauseBtn = document.getElementById("play-pause-btn");
+    const numberNavButtons = document.querySelectorAll(".slider-num-btn");
+    const tabLinks = document.querySelectorAll('.tab-link-modern');
+    const tabPanels = document.querySelectorAll('.tab-content-panel-modern');
+    const sectionNavLinks = document.querySelectorAll('.section-nav a');
+    const pageSections = document.querySelectorAll('.page-section');
+
+      initializeEsgSection(); 
+
+            // --- Slider Class (Existing functionality) ---
+    class HeroSlider {
+        constructor(duration) {
+            this.currentSlide = 0;
+            this.isPlaying = true;
+            this.slideDuration = duration;
+            this.timer = null;
+            this.animationFrame = null;
+            this.startTime = null;
+            this.playPauseIcon = playPauseBtn.querySelector("i");
+            this.totalSlides = slides.length;
+            this.circumference = 2 * Math.PI * 25;
+
+            this.init();
+        }
+
+        updateProgress() {
+            if (!this.isPlaying) return;
+            const elapsed = Date.now() - this.startTime;
+            const progress = elapsed / this.slideDuration;
+            const activeCircle = numberNavButtons[this.currentSlide].querySelector('.progress-ring-circle');
+            activeCircle.style.strokeDashoffset = this.circumference * (1 - progress);
+            if (progress < 1) {
+                this.animationFrame = requestAnimationFrame(this.updateProgress.bind(this));
+            }
+        }
+
+        goTo(slideIndex) {
+            cancelAnimationFrame(this.animationFrame);
+            clearTimeout(this.timer);
+            slides[this.currentSlide].classList.remove("active");
+            numberNavButtons[this.currentSlide].classList.remove("active");
+            this.currentSlide = (slideIndex + this.totalSlides) % this.totalSlides;
+            slides[this.currentSlide].classList.add("active");
+            numberNavButtons[this.currentSlide].classList.add("active");
+            document.querySelectorAll('.progress-ring-circle').forEach(circle => {
+                circle.style.transition = 'none';
+                circle.style.strokeDashoffset = this.circumference;
+            });
+            if (this.isPlaying) this.play();
+        }
+
+        play() {
+            clearTimeout(this.timer);
+            cancelAnimationFrame(this.animationFrame);
+            this.isPlaying = true;
+            heroSection.classList.remove('hero-paused');
+            this.playPauseIcon.classList.remove("fa-play");
+            this.playPauseIcon.classList.add("fa-pause");
+            this.startTime = Date.now();
+            this.timer = setTimeout(() => this.next(), this.slideDuration);
+            this.animationFrame = requestAnimationFrame(this.updateProgress.bind(this));
+        }
+
+        pause() {
+            this.isPlaying = false;
+            heroSection.classList.add('hero-paused');
+            this.playPauseIcon.classList.remove("fa-pause");
+            this.playPauseIcon.classList.add("fa-play");
+            clearTimeout(this.timer);
+            cancelAnimationFrame(this.animationFrame);
+        }
+
+        next() {
+            this.goTo(this.currentSlide + 1);
+        }
+
+        init() {
+            playPauseBtn.addEventListener("click", () => this.isPlaying ? this.pause() : this.play());
+            numberNavButtons.forEach((navEl, index) => navEl.addEventListener("click", () => this.goTo(index)));
+            this.goTo(0);
+        }
+    }
+
+    if (slides.length > 0) new HeroSlider(5000);
 
   // Define all pages and their content for the in-memory search index
   const pages = [
@@ -944,3 +1030,62 @@ fullscreenMenu.querySelectorAll("a.nav-link").forEach((link) => {
     });
 
 
+// Add this entire function to your script.js file
+function initializeEsgSection() {
+    const esgContainer = document.getElementById('esg-section');
+    // If the section doesn't exist on the current page, do nothing
+    if (!esgContainer) return;
+
+    const pages = esgContainer.querySelectorAll('.esg-page');
+    const bottomBtns = esgContainer.querySelectorAll('.esg-nav-btn');
+   
+    let currentPageIndex = 0;
+    let isScrolling = false; // A flag to prevent rapid scrolling
+
+    function goToEsgPage(index) {
+        // Prevent going out of bounds
+        if (index < 0 || index >= pages.length || index === currentPageIndex) return;
+        
+        // Remove active classes from the previous page elements
+        pages[currentPageIndex].classList.remove('active');
+        bottomBtns[currentPageIndex].classList.remove('active');
+      
+        
+        // Add active classes to the new page elements
+        pages[index].classList.add('active');
+        bottomBtns[index].classList.add('active');
+      
+
+        // Update the main container's background color from the data attribute
+        const newBgColor = pages[index].dataset.bgColor || '#ffffff';
+        esgContainer.style.backgroundColor = newBgColor;
+
+        currentPageIndex = index;
+    }
+
+    // Add click event listeners to the bottom navigation buttons
+    bottomBtns.forEach(btn => {
+        btn.addEventListener('click', () => goToEsgPage(parseInt(btn.dataset.index)));
+    });
+
+  
+    // Add mouse wheel event listener for scrolling between pages
+    esgContainer.addEventListener('wheel', (e) => {
+        if (isScrolling) return; // If already scrolling, ignore
+        isScrolling = true;
+
+        if (e.deltaY > 0) { // Scrolling down
+            goToEsgPage(currentPageIndex + 1);
+        } else { // Scrolling up
+            goToEsgPage(currentPageIndex - 1);
+        }
+
+        // Set a timeout to reset the scrolling flag after the transition ends
+        setTimeout(() => { isScrolling = false; }, 1200); 
+    });
+
+    // Initialize the first page on load
+    if (pages.length > 0) {
+       esgContainer.style.backgroundColor = pages[0].dataset.bgColor;
+    }
+}

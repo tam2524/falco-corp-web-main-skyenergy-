@@ -20,6 +20,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const tabPanels = document.querySelectorAll('.tab-content-panel-modern');
     const sectionNavLinks = document.querySelectorAll('.section-nav a');
     const pageSections = document.querySelectorAll('.page-section');
+    const esgCards = document.querySelectorAll('.esg-card');
+    const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+
+    const tabLinks1 = document.querySelectorAll('#who-we-are .intro-subnav .tab-link');
+    const tabContents = document.querySelectorAll('#who-we-are > .tab-content');
 
       initializeEsgSection(); 
 
@@ -99,6 +105,102 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (slides.length > 0) new HeroSlider(5000);
 
+     function hideAllTabs() {
+        tabContents.forEach(content => {
+            content.classList.add('hidden');
+        });
+    }
+     function deactivateAllTabLinks() {
+        tabLinks1.forEach(link => {
+            link.classList.remove('active');
+        });
+    }
+
+     tabLinks1.forEach(link => {
+        link.addEventListener('click', () => {
+            const tab = link.getAttribute('data-tab');
+            const contentToShow = document.getElementById(`${tab}-content`);
+
+            // Update the visual state
+            deactivateAllTabLinks();
+            hideAllTabs();
+            
+            link.classList.add('active');
+            if (contentToShow) {
+                contentToShow.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Ensure the "Overview" tab is active on page load
+    hideAllTabs();
+    document.getElementById('overview-content').classList.remove('hidden');
+
+      const historySliderTrack = document.querySelector('.history-slider-track');
+        if (historySliderTrack) {
+            const historySlides = Array.from(historySliderTrack.children);
+            const nextButton = document.getElementById('history-next');
+            const prevButton = document.getElementById('history-prev');
+            let slideIndex = 0;
+
+            const updateSliderPosition = () => {
+                const slideWidth = historySlides[0].getBoundingClientRect().width;
+                historySliderTrack.style.transform = `translateX(-${slideIndex * slideWidth}px)`;
+            };
+
+            nextButton.addEventListener('click', () => {
+                slideIndex = (slideIndex + 1) % historySlides.length;
+                updateSliderPosition();
+            });
+
+            prevButton.addEventListener('click', () => {
+                slideIndex = (slideIndex - 1 + historySlides.length) % historySlides.length;
+                updateSliderPosition();
+            });
+
+            // Adjust slider on window resize
+            window.addEventListener('resize', updateSliderPosition);
+        }
+
+        // --- Logic for the NEW Interactive Timeline ---
+        const yearButtons = document.querySelectorAll('.timeline-year-btn');
+        const eventGroups = document.querySelectorAll('.timeline-event-group');
+
+        yearButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const year = button.getAttribute('data-year');
+
+                // Update active state for buttons
+                yearButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Show the corresponding event group
+                eventGroups.forEach(group => {
+                    if (group.id === `events-${year}`) {
+                        group.classList.add('active');
+                    } else {
+                        group.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+         window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollToTopBtn.classList.add('visible');
+        } else {
+            scrollToTopBtn.classList.remove('visible');
+        }
+    });
+
+    // Scroll to top on click
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
   // Define all pages and their content for the in-memory search index
   const pages = [
     {
@@ -164,17 +266,22 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
 function initializeMegaMenu() {
-    if (window.innerWidth <= 768) return; // Only run on desktop
+    const navContainer = document.querySelector('.nav-container');
+    if (!navContainer) return; // Exit if not on a page with the mega menu
 
-    const mainLinks = document.querySelectorAll('#nav-main .nav-main-link');
-    const subMenus = document.querySelectorAll('#nav-sub .nav-sub-menu');
+    const mainLinks = navContainer.querySelectorAll('.nav-main-link');
+    const subMenus = navContainer.querySelectorAll('.nav-sub-menu');
 
     mainLinks.forEach(link => {
         link.addEventListener('mouseenter', () => {
+            // Remove active state from all items first
             mainLinks.forEach(l => l.classList.remove('active'));
             subMenus.forEach(m => m.classList.remove('active'));
 
+            // Add active state to the hovered link
             link.classList.add('active');
+            
+            // Get the target sub-menu from the data attribute
             const targetId = link.dataset.menuTarget;
             if (targetId) {
                 const targetMenu = document.getElementById(`menu-${targetId}`);
@@ -186,8 +293,31 @@ function initializeMegaMenu() {
     });
 }
 
-// Call the new function
-initializeMegaMenu();
+const esgContainer = document.querySelector('.esg-strategy-container');
+    if (esgContainer) {
+        const esgCards = esgContainer.querySelectorAll('.esg-card');
+
+        esgCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Remove 'expanded' from all cards
+                esgCards.forEach(c => c.classList.remove('expanded'));
+                // Add 'expanded' to the hovered card
+                card.classList.add('expanded');
+            });
+        });
+
+        // Add a listener to the container to reset to default when the mouse leaves
+        esgContainer.addEventListener('mouseleave', () => {
+            esgCards.forEach(c => c.classList.remove('expanded'));
+            // Make the first card the default expanded one
+            if (esgCards.length > 0) {
+                esgCards[0].classList.add('expanded');
+            }
+        });
+    }
+
+// Call the function when the page loads
+document.addEventListener('DOMContentLoaded', initializeMegaMenu);
 
  function initializeStatCounters(containerSelector) {
         const statNumbers = document.querySelectorAll(`${containerSelector} .stat-number[data-target]`);
@@ -250,10 +380,62 @@ function initializeTabbedContent(containerSelector) {
     }
 }
 
+
 // And update the call inside initializePageScripts('home')
 // Make sure this is called inside your page initialization logic for the home page.
 initializeTabbedContent('#home .tabs-container-modern');
 
+
+
+    const mainTabs = document.querySelectorAll('#product-main-tabs .tab-link');
+    const mainContents = document.querySelectorAll('.page-content > .tab-content');
+
+    // Function to handle secondary tabs within a container
+    function initializeProductTabs(container) {
+        const productTabLinks = container.querySelectorAll('.product-tab-link');
+        const productPanels = container.querySelectorAll('.product-panel');
+
+        productTabLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                const targetPanelId = link.getAttribute('data-product-tab') + '-panel';
+
+                // Update active link
+                productTabLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                // Show target panel
+                productPanels.forEach(panel => {
+                    panel.classList.toggle('active', panel.id === targetPanelId);
+                });
+            });
+        });
+    }
+
+    // Main Tab Logic
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetContentId = tab.getAttribute('data-tab') + '-content';
+
+            // Update main tab active state
+            mainTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Show target main content block
+            mainContents.forEach(content => {
+                content.classList.toggle('hidden', content.id !== targetContentId);
+            });
+        });
+    });
+    
+    // Initialize secondary tabs for both main sections
+    if (document.getElementById('products-content')) {
+        initializeProductTabs(document.getElementById('products-content'));
+    }
+    if (document.getElementById('services-content')) {
+        initializeProductTabs(document.getElementById('services-content'));
+    }
+
+   
   // Functions for page and title management
   function setPage(pageId) {
     pageContent.forEach((page) => page.classList.add("hidden"));

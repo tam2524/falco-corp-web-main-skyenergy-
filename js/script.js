@@ -442,8 +442,6 @@ initializeTabbedContent('#home .tabs-container-modern');
     const currentPage = document.getElementById(pageId);
     if (currentPage) {
       currentPage.classList.remove("hidden");
-      const pageTitle = currentPage.getAttribute("data-page-title");
-      document.title = `Falco Corporation | ${pageTitle}`;
       window.scrollTo({ top: 0, behavior: "instant" });
       initializePageScripts(pageId);
     }

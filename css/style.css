@@ -221,6 +221,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
   padding: 1rem;
 }
 .hero-paused .hero-background-image {
@@ -761,11 +762,11 @@ body {
 
 /* --- General Page Container --- */
 .page-content {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2rem;
-    padding-top: 16rem; /* Pushes content below the fixed main header */
+    max-width: 100%;
+    padding-top: 10rem; /* Pushes content below the fixed main header */
 }
+
+
 
 /* --- Header and Tabs --- */
 .intro-header {
